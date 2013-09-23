@@ -19,15 +19,19 @@ func main() {
 	log.Printf("%s\n", os.Args[0])
 	flag.VisitAll(func(f *flag.Flag) { log.Printf("  -%s=%s\n", f.Name, f.Value) })
 
-	source, err := couchbase.GetBucket(*sourceUrl, "default", *sourceBucket)
+	start(*sourceUrl, "default", *sourceBucket, *targetUrl, "default", *targetBucket)
+}
+
+func start(sourceUrl, sourcePool, sourceBucket, targetUrl, targetPool, targetBucket string) {
+	source, err := couchbase.GetBucket(sourceUrl, sourcePool, sourceBucket)
 	if err != nil {
 		log.Fatalf("error: could not connect to sourceUrl: %s, sourceBucket: %s, err: %v",
-			*sourceUrl, sourceBucket, err)
+			sourceUrl, sourceBucket, err)
 	}
-	target, err := couchbase.GetBucket(*targetUrl, "default", *targetBucket)
+	target, err := couchbase.GetBucket(targetUrl, targetPool, targetBucket)
 	if err != nil {
 		log.Fatalf("error: could not connect to targetUrl: %s, targetBucket: %s, err: %v",
-			*targetUrl, *targetBucket, err)
+			targetUrl, targetBucket, err)
 	}
 	tapArgs := memcached.TapArguments{
 		Backfill: 0,     // Timestamp of oldest item to send.

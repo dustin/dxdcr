@@ -47,6 +47,19 @@ func start(sourceUrl, sourcePool, sourceBucket, targetUrl, targetPool, targetBuc
 	log.Printf("tap: %#v", tap)
 
 	for e := range tap.C {
-		log.Printf(" e: %#v", e)
+		stop, err := processTapEvent(source, target, e);
+		if err != nil {
+			log.Fatalf("error: processTapEvent err: %v", err)
+		}
+		if stop {
+			return
+		}
 	}
+
+	tap.Close()
+}
+
+func processTapEvent(source, target *couchbase.Bucket, e memcached.TapEvent) (stop bool, err error) {
+	log.Printf(" e: %#v", e)
+	return false, nil
 }

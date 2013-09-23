@@ -43,9 +43,6 @@ func start(sourceUrl, sourcePool, sourceBucket, targetUrl, targetPool, targetBuc
 		log.Fatalf("error: could not StartTapFeed, err: %v", err)
 	}
 
-	log.Printf("target: %#v", target)
-	log.Printf("tap: %#v", tap)
-
 	for e := range tap.C {
 		stop, err := processTapEvent(source, target, e);
 		if err != nil {

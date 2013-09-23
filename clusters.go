@@ -48,9 +48,9 @@ func (r RawCAS) String() string {
 }
 
 func (r *RawCAS) SetTimestamp(ts uint64) {
-	*r = (^RawCAS(timestampMask))&*r | RawCAS(ts&clusterMask)
+	*r = (^RawCAS(timestampMask))&*r | RawCAS(ts&timestampMask)
 }
 
 func (r *RawCAS) SetClusterID(to uint) {
-	*r = RawCAS(timestampMask)&*r | RawCAS(clusterRangeCheck(clusterBits, to))
+	*r = RawCAS((uint64(to) << clusterShift)) | RawCAS(uint64(*r)&timestampMask)
 }

@@ -58,4 +58,14 @@ func TestClusterBits(t *testing.T) {
 				rc, test.input, test.timestamp, rc.Timestamp())
 		}
 	}
+
+	for _, test := range tests {
+		var rc RawCAS
+		rc.SetClusterID(test.cluster)
+		rc.SetTimestamp(test.timestamp)
+		if uint64(rc) != test.input {
+			t.Errorf("Expected to build %d/%x to %x, got %x (%v)",
+				test.cluster, test.timestamp, test.input, uint64(rc), rc)
+		}
+	}
 }

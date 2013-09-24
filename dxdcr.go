@@ -26,36 +26,36 @@ func main() {
 	start(*sourceUrl, "default", *sourceBucket, *targetUrl, "default", *targetBucket)
 }
 
-func start(sourceUrl, sourcePool, sourceBucket, targetUrl, targetPool, targetBucket string) {
-	source, err := couchbase.GetBucket(sourceUrl, sourcePool, sourceBucket)
+func start(srcUrl, srcPool, srcBucket, targetUrl, targetPool, targetBucket string) {
+	src, err := couchbase.GetBucket(srcUrl, srcPool, srcBucket)
 	if err != nil {
-		log.Fatalf("error: could not connect to sourceUrl: %s, sourceBucket: %s, err: %v",
-			sourceUrl, sourceBucket, err)
+		log.Fatalf("could not connect to src url: %s, bucket: %s, err: %v",
+			srcUrl, srcBucket, err)
 	}
-	defer source.Close()
+	defer src.Close()
 
 	target, err := couchbase.GetBucket(targetUrl, targetPool, targetBucket)
 	if err != nil {
-		log.Fatalf("error: could not connect to targetUrl: %s, targetBucket: %s, err: %v",
+		log.Fatalf("could not connect to target url: %s, bucket: %s, err: %v",
 			targetUrl, targetBucket, err)
 	}
 	defer target.Close()
 
 	tapArgs := memcached.TapArguments{
 		Backfill: 0,     // Timestamp of oldest item to send.
-		Dump:     false, // If true, source will disconnect after sending existing items.
+		Dump:     false, // Disconnect after sending existing items?
 		KeysOnly: false,
 	}
-	tap, err := source.StartTapFeed(&tapArgs)
+	tap, err := src.StartTapFeed(&tapArgs)
 	if err != nil {
-		log.Fatalf("error: could not StartTapFeed, err: %v", err)
+		log.Fatalf("could not StartTapFeed, err: %v", err)
 	}
 	defer tap.Close()
 
 	for e := range tap.C {
-		stop, err := processTapEvent(source, target, e)
+		stop, err := processTapEvent(src, target, e)
 		if err != nil {
-			log.Fatalf("error: processTapEvent err: %v", err)
+			log.Fatalf("processTapEvent err: %v", err)
 		}
 		if stop {
 			return
@@ -63,7 +63,9 @@ func start(sourceUrl, sourcePool, sourceBucket, targetUrl, targetPool, targetBuc
 	}
 }
 
-func processTapEvent(source, target *couchbase.Bucket, e memcached.TapEvent) (stop bool, err error) {
+func processTapEvent(src, target *couchbase.Bucket,
+	e memcached.TapEvent) (stop bool, err error) {
+
 	log.Printf(" e: %#v", e)
 	return false, nil
 }

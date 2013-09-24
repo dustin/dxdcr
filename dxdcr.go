@@ -28,11 +28,15 @@ func start(sourceUrl, sourcePool, sourceBucket, targetUrl, targetPool, targetBuc
 		log.Fatalf("error: could not connect to sourceUrl: %s, sourceBucket: %s, err: %v",
 			sourceUrl, sourceBucket, err)
 	}
+	defer source.Close()
+
 	target, err := couchbase.GetBucket(targetUrl, targetPool, targetBucket)
 	if err != nil {
 		log.Fatalf("error: could not connect to targetUrl: %s, targetBucket: %s, err: %v",
 			targetUrl, targetBucket, err)
 	}
+	defer target.Close()
+
 	tapArgs := memcached.TapArguments{
 		Backfill: 0,     // Timestamp of oldest item to send.
 		Dump:     false, // If true, source will disconnect after sending existing items.
@@ -42,9 +46,10 @@ func start(sourceUrl, sourcePool, sourceBucket, targetUrl, targetPool, targetBuc
 	if err != nil {
 		log.Fatalf("error: could not StartTapFeed, err: %v", err)
 	}
+	defer tap.Close()
 
 	for e := range tap.C {
-		stop, err := processTapEvent(source, target, e);
+		stop, err := processTapEvent(source, target, e)
 		if err != nil {
 			log.Fatalf("error: processTapEvent err: %v", err)
 		}
@@ -52,8 +57,6 @@ func start(sourceUrl, sourcePool, sourceBucket, targetUrl, targetPool, targetBuc
 			return
 		}
 	}
-
-	tap.Close()
 }
 
 func processTapEvent(source, target *couchbase.Bucket, e memcached.TapEvent) (stop bool, err error) {
